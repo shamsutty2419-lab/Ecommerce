@@ -57,3 +57,17 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+
+### git commands
+
+# switch and create a new branch 
+git switch -c <branch_name>
+
+# Add, Commit , Push 
+git add .
+git commit -m <what ever done give a short description>
+git push origin <branch_name>
+
+# pull the latest from main remote branch 
+git pull origin mai
