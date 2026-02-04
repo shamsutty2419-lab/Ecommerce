@@ -1,15 +1,15 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Header } from './header/header';
+import { MatToolbar } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  template: `
-    <h1 class="bg-red-500">Welcome to {{ title() }}!</h1>
-    <router-outlet />
+  imports: [  MatToolbar],
+  template: `<mat-toolbar> Modern-store</mat-toolbar>,
+    
   `,
   styles: [],
 })
 export class App {
-  protected readonly title = signal('ng-ecommerce');
+   
 }
