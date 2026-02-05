@@ -1,15 +1,15 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-my-wishlist',
   imports: [],
   template: `
     <p>
-      header works!
+      my-wishlist works!
     </p>
   `,
   styles: ``,
 })
-export class Header {
+export default class MyWishlist {
 
 }

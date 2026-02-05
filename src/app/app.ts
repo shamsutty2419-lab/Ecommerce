@@ -1,12 +1,13 @@
 import { Component, signal } from '@angular/core';
-import { Header } from './header/header';
-import { MatToolbar } from '@angular/material/toolbar';
+import { Header } from './layout/header';
+import { RouterOutlet } from '@angular/router';
+
 
 @Component({
   selector: 'app-root',
-  imports: [  MatToolbar],
-  template: `<mat-toolbar> Modern-store</mat-toolbar>,
-    
+  imports: [  RouterOutlet, Header,],
+  template: `<app-header/>
+  <router-outlet/>
   `,
   styles: [],
 })
