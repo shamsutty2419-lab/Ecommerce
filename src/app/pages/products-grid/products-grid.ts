@@ -11,5 +11,6 @@ import { Component } from '@angular/core';
   styles: ``,
 })
 export default class ProductsGrid {
+  
 
 }
