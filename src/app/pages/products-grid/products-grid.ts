@@ -14,7 +14,6 @@ import { product } from '../../models/products';
 export default class ProductsGrid {
   @Input() category = signal<string>('all');
   products = signal<product[]>([
-
   ]);
   filteredProducts = computed(() => this.products().filter(p => 
     this.category().toLocaleLowerCase()
