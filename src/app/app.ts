@@ -7,7 +7,10 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-root',
   imports: [  RouterOutlet, Header,],
   template: `<app-header/>
-  <router-outlet/>
+  <div class="h-[calc(100%-64px)] overflow-auto">
+    <router-outlet/>
+</div>
+  
   `,
   styles: [],
 })
