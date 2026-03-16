@@ -1,139 +1,175 @@
-import { Component, computed, input, Input, signal } from '@angular/core';
-import { product } from '../../models/products';
+import { Component, effect, inject } from '@angular/core';
+import { NgIf, NgOptimizedImage, CurrencyPipe } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
+import { ProductsStore } from '../../products/data-access/products.store';
 
 @Component({
   selector: 'app-products-grid',
-  imports: [],
-  template: ` <div class="bg-gray-100 p-6 h-full">
-    <h1  class="text-2xl font-bold text-gray-900">{{category()}}</h1>
-  </div>
-  <div class="responsive-grid">
-    @for (product of filteredProducts(); track  product.id) {
-      <div class="bg-white cursor-pointer rounded-lg shadow-lg  ovwerflow-hidden flex flex-col h-full">
-        <img [src]="product.imageUrl"  class="w-full h-[300px] object-cover rounded round-t-xl" />
-        <div class="p-5 flex flex-col flex-1">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2 leading-tight">
-            {{product.name}}
-          </h3>
+  standalone: true,
+  imports: [
+    NgIf,
+    NgOptimizedImage,
+    CurrencyPipe,
+    RouterLink,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatButton,
+    MatIcon,
+    MatFormField,
+    MatLabel,
+    MatInput,
+  ],
+  template: `
+    <main class="max-w-[1200px] mx-auto px-4 py-6 space-y-6">
+      <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="space-y-1">
+          <h1 class="text-2xl font-semibold">Modern Store</h1>
+          <p class="text-sm text-gray-500">
+            Discover carefully curated products across clothing, electronics, home and more.
+          </p>
         </div>
-  </div>
-     }
-  </div>
-    
+
+        <form
+          class="w-full max-w-sm"
+          (ngSubmit)="$event.preventDefault()"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>Search products</mat-label>
+            <input
+              matInput
+              type="search"
+              [value]="searchTerm()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Search by name or description"
+            />
+          </mat-form-field>
+        </form>
+      </section>
+
+      <section class="flex flex-wrap gap-2">
+        <button
+          mat-button
+          *ngFor="let c of categories"
+          [class.bg-primary-container]="activeCategory() === c.value"
+          [class.text-primary]="activeCategory() === c.value"
+          (click)="onCategoryChange(c.value)"
+        >
+          {{ c.label }}
+        </button>
+      </section>
+
+      <section>
+        <div
+          *ngIf="products().length === 0; else grid"
+          class="text-sm text-gray-500"
+        >
+          No products found. Try a different search or category.
+        </div>
+
+        <ng-template #grid>
+          <div class="responsive-grid">
+            @for (product of products(); track product.id) {
+              <a
+                mat-card
+                class="block overflow-hidden rounded-xl border border-gray-100 bg-white transition hover:shadow-md"
+                [routerLink]="['/product', product.id]"
+              >
+                <img
+                  [ngSrc]="product.imageUrl"
+                  [alt]="product.name"
+                  width="400"
+                  height="300"
+                  class="h-56 w-full object-cover"
+                />
+
+                <div class="p-4 space-y-2">
+                  <div class="flex items-start justify-between gap-3">
+                    <h2 class="text-sm font-medium line-clamp-2">
+                      {{ product.name }}
+                    </h2>
+                    <span class="text-sm font-semibold">
+                      {{ product.price | currency : 'USD' : 'symbol' : '1.0-0' }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs text-gray-500">
+                    <span class="flex items-center gap-1">
+                      <mat-icon class="small text-amber-500">star</mat-icon>
+                      {{ product.rating }} • {{ product.reviewsCount }} reviews
+                    </span>
+                    <span class="capitalize">{{ product.category }}</span>
+                  </div>
+
+                  <button
+                    mat-button
+                    color="primary"
+                    class="mt-2 w-full justify-center"
+                  >
+                    View details
+                  </button>
+                </div>
+              </a>
+            }
+          </div>
+        </ng-template>
+      </section>
+    </main>
   `,
   styles: ``,
 })
 export default class ProductsGrid {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  readonly store = inject(ProductsStore);
 
-  category = input<string>('all');
+  readonly categories = [
+    { label: 'All', value: 'all' },
+    { label: 'Clothing', value: 'clothing' },
+    { label: 'Electronics', value: 'electronics' },
+    { label: 'Home', value: 'home' },
+    { label: 'Accessories', value: 'accessories' },
+  ];
 
-  products = signal<product[]>([
-    //electrocics
-    { 
-    id: 1 ,
-    name: 'Smartphone',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c21hcnRwaG9uZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60',
-  },
-     { 
-    id: 2 ,
-    name: 'Laptop',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://m.media-amazon.com/images/I/61IDcxw27+L.jpg',
-  },
-       { 
-    id: 3 ,
-    name: 'fan',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://rukminim2.flixcart.com/image/3072/3072/xif0q/fan/i/b/j/renesa-pedestal-swing-decor-35-1-bldc-pedestal-fan-400-atomberg-original-imahjzh9zfamwgsv.jpeg?q=90',
-  },
-      { 
-    id: 4 ,
-    name: 'mixer',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://m.media-amazon.com/images/I/71PIpuPlq3L._SX679_.jpg',
-  },
-      { 
-    id: 5 ,
-    name: 'camera',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://m.media-amazon.com/images/I/51NR+Auf92L._SY300_SX300_QL70_FMwebp_.jpg',
-  },
-      { 
-    id: 6 ,
-    name: 'projector',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRInu3g7h8_lYiOmEIlLwZtfZRdq2zuje2TFh0NHptAaTOObf5I6xYA2AkQTxiu_5C4copr0bo1QJ2oxIugSk8UdfApRTC841FS9S0k6OltxeqwaagDa7QpZfiMz6iKHzreufUYeXVMtg&usqp=CAc',
-  },
-      { 
-    id: 7 ,
-    name: 'tv',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRmjp_nQACefcB4GXeY9qA69vk5FxCXZsmbxByHXCtRSxtZax7xQfRIpAlxwOr9HW52nxD8dLRWOQ35eU92gEbBUN0ze_fdaZ2tmg0lYYj7tF6h-iZf7iKyG1FzelNwunA1tO-NJ482BQ&usqp=CAc',
-  },
-      { 
-    id: 8 ,
-    name: 'airpods',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSFwaYiZwcYZXBUgi1wUIJBfCk6M42dSHWRyjFUK7q5Qn3UKA6s4YkRwmilTNXUWoc38WjRCBAyrQNEY9bGfKSwbbbVZs1pq3spAmhvyrrQanRodOGH6qBs8-BGjBx56EYzDGTlig&usqp=CAc',
-  },
-      { 
-    id: 9 ,
-    name: 'power bank',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQOnUJl9PFgPbWppexrb-_INpLY9uJ4RVeXb2dKkHfieOB2bxPH5VZvNvr2UtYXylnGAD7qgBUiUkDwp_3lefBWdoknoCgWsHUpJVrx-dTUVF_33rfyVz-qMfg',
-  },
-      { 
-    id: 10 ,
-    name: 'headphones',
-    price: 19.99,
-    category: 'electronics',
-    inStock: true,
-    rating: 4.5,
-    reviews: 10,
-    imageUrl:'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSLPl2ibRGQXHPprVatMxFS2REhW2L69u4H_WzPuLBRjIrdN0TjYHcYml16iobI2jfeEWCPa1z0swszEjDDwTUiA2iZn0auNXXFCNzcfxX3bpCw2EWCHtuo9hcU',
-  },
-
-
-    
-  ]);
-  filteredProducts = computed(() => this.products().filter(p => p.category.toLocaleLowerCase() === 
-    this.category().toLocaleLowerCase())
+  readonly activeCategory = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('category') ?? 'all')),
+    { initialValue: 'all' },
   );
+
+  readonly searchTerm = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('search') ?? '')),
+    { initialValue: '' },
+  );
+
+  readonly products = this.store.filteredProducts;
+
+  constructor() {
+    effect(() => {
+      this.store.setCategory(this.activeCategory());
+      this.store.setSearch(this.searchTerm());
+    });
+  }
+
+  onCategoryChange(category: string) {
+    this.router.navigate(['products', category], {
+      queryParamsHandling: 'preserve',
+    });
+  }
+
+  onSearchChange(value: string) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { search: value || null },
+      queryParamsHandling: 'merge',
+    });
+  }
 }
+
