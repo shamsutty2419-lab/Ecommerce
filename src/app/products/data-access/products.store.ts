@@ -1,5 +1,5 @@
 import { Injectable, computed } from '@angular/core';
-import { signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { signalStore, withComputed, withMethods, withState, patchState } from '@ngrx/signals';
 import { Product } from '../../shared/models/product.model';
 import { PRODUCTS_MOCK } from './products.mock';
 
@@ -40,10 +40,10 @@ export const ProductsStore = signalStore(
   })),
   withMethods((store) => ({
     setCategory(category: string) {
-      store.category.set(category);
+      patchState(store, { category });
     },
     setSearch(search: string) {
-      store.search.set(search);
+      patchState(store, { search });
     },
   })),
 );

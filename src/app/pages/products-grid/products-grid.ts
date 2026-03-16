@@ -1,7 +1,6 @@
 import { Component, effect, inject } from '@angular/core';
-import { NgIf, NgOptimizedImage, CurrencyPipe } from '@angular/common';
+import { NgOptimizedImage, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -14,14 +13,9 @@ import { ProductsStore } from '../../products/data-access/products.store';
   selector: 'app-products-grid',
   standalone: true,
   imports: [
-    NgIf,
     NgOptimizedImage,
     CurrencyPipe,
     RouterLink,
-    MatCard,
-    MatCardHeader,
-    MatCardTitle,
-    MatCardContent,
     MatButton,
     MatIcon,
     MatFormField,
@@ -56,26 +50,24 @@ import { ProductsStore } from '../../products/data-access/products.store';
       </section>
 
       <section class="flex flex-wrap gap-2">
-        <button
-          mat-button
-          *ngFor="let c of categories"
-          [class.bg-primary-container]="activeCategory() === c.value"
-          [class.text-primary]="activeCategory() === c.value"
-          (click)="onCategoryChange(c.value)"
-        >
-          {{ c.label }}
-        </button>
+        @for (c of categories; track c.value) {
+          <button
+            mat-button
+            [class.bg-primary-container]="activeCategory() === c.value"
+            [class.text-primary]="activeCategory() === c.value"
+            (click)="onCategoryChange(c.value)"
+          >
+            {{ c.label }}
+          </button>
+        }
       </section>
 
       <section>
-        <div
-          *ngIf="products().length === 0; else grid"
-          class="text-sm text-gray-500"
-        >
-          No products found. Try a different search or category.
-        </div>
-
-        <ng-template #grid>
+        @if (products().length === 0) {
+          <div class="text-sm text-gray-500">
+            No products found. Try a different search or category.
+          </div>
+        } @else {
           <div class="responsive-grid">
             @for (product of products(); track product.id) {
               <a
@@ -120,11 +112,10 @@ import { ProductsStore } from '../../products/data-access/products.store';
               </a>
             }
           </div>
-        </ng-template>
+        }
       </section>
     </main>
   `,
-  styles: ``,
 })
 export default class ProductsGrid {
   private readonly route = inject(ActivatedRoute);
